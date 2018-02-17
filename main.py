@@ -7,12 +7,14 @@ from distutils.version import LooseVersion
 from os.path import join, expanduser
 from improcess import perform_augmentation
 
+# usual training session
 def train_nn(sess, training_epochs, batch_size, get_batches, train_op, cross_entropy_loss,
              image_input, labels, keep_prob, learning_rate):
 
     # Variable initialization
     sess.run(tf.global_variables_initializer())
 
+    # use learning rate in argument or default 1e-4
     lr = args.learning_rate
 
     for e in range(0, training_epochs):
@@ -24,8 +26,10 @@ def train_nn(sess, training_epochs, batch_size, get_batches, train_op, cross_ent
             # Load a batch of examples
             batch_x, batch_y = next(get_batches(batch_size))
             if preprocess:
+                # if defined use preprocessing to expand training batches
                 batch_x, batch_y = perform_augmentation(batch_x, batch_y)
 
+               # calculate loss for current epoch
             _, cur_loss = sess.run(fetches=[train_op, cross_entropy_loss],
                                    feed_dict={image_input: batch_x, labels: batch_y, keep_prob: 0.25,
                                               learning_rate: lr})
@@ -42,10 +46,11 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, n_classes):
     tasks like semantic segmentation.
     (At last fully connected layer, the network overloads GPU memory under 5GB, making training unefficient...)
     """
-    # choose a more drastic l2 (feedforward) regularization of 0.5 to avoid overfitting
+    # choose a more drastic l2 (feedforward) regularization of 0.01 to avoid overfitting
+    # Dropout maybe?
     kernel_regularizer = tf.contrib.layers.l2_regularizer(0.01)
 
-    # Compute logits
+    # Compute probabilities
     layer3_logits = tf.layers.conv2d(vgg_layer3_out, n_classes, kernel_size=[1, 1],
                                      padding='same', kernel_regularizer=kernel_regularizer)
     layer4_logits = tf.layers.conv2d(vgg_layer4_out, n_classes, kernel_size=[1, 1],
@@ -92,27 +97,28 @@ def run():
         # set up path to vgg network model
         vgg_path = join(data_dir, 'vgg')
 
-        # load training batches
+        # load training batches generator
         batches = get_batches(join(data_dir, 'data_road/training'),(image_h, image_w))
         
-        # Load VGG pretrained
+        # Load pretrained VGG model
         image_input, keep_prob, vgg_layer3_out, vgg_layer4_out, vgg_layer7_out = load_vgg(sess, vgg_path)
 
-        # Add skip connections
+        # Create Fully convolutional layers (fusion, upsampling)
         output = layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, n_classes)
 
-        # Define placeholders
+        # Define placeholders labels and learning rate
         labels = tf.placeholder(tf.float32, shape=[None, image_h, image_w, n_classes])
         learning_rate = tf.placeholder(tf.float32, shape=[])
 
-        # training pipeline
-        logits_flat = tf.reshape(output, (-1, n_classes))
-        labels_flat = tf.reshape(labels, (-1, n_classes))
+        # training pipeline as usual
+        logits_flat = tf.reshape(output, (-1, n_classes)) # flatten to 1-D
+        labels_flat = tf.reshape(labels, (-1, n_classes)) # flatten to 1-D
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=labels_flat, logits=logits_flat)
         loss_function = tf.reduce_mean(cross_entropy)
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
         train_step = optimizer.minimize(loss_function)
 
+        # Train FCN
         train_nn(sess, args.ep, args.b_size, batches, image_input, loss_function,
                  image_input, labels, keep_prob, learning_rate)
 

@@ -12,6 +12,7 @@ def perform_augmentation(batch_x, batch_y):
     def mirror(x):
         return x[:, ::-1, :]
 
+    # more reliable color space than RGB
     def augment_in_hsv_space(x_hsv):
         x_hsv = np.float32(cv2.cvtColor(x_hsv, cv2.COLOR_RGB2HSV))
         x_hsv[:, :, 0] = x_hsv[:, :, 0] * random.uniform(0.9, 1.1)   # change hue
