@@ -9,10 +9,15 @@ on a road segmentation task/dataset.
 # Arguments
 
 --b_size (int)                Define batch size.
+
 --b_per_ep (int)              Define batches per training iterations.
+
 --ep (int)                    Define amount of training iterations.
+
 --learning_rate (float)       Define learning rate.
+
 --augmentation (bool)         Perform preprocessing in training.
+
 --gpu (int)                   Which GPU to use.
 
 run $ python main.py
