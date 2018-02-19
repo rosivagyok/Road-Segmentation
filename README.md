@@ -1,6 +1,6 @@
 # Road-Segmentation
 
-Semantic segmentation of roads/lanes with Fully Convolutional Network.
+Semantic segmentation of roads/lanes with Fully Convolutional Network based on Udacity project proposal.
 
 Implements the model and method proposed by Long, Shelhamer & Darrell in 'Fully Convolutional Networks for Semantic Segmentation' 
 on a road segmentation task/dataset.
