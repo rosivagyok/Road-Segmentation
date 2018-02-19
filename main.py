@@ -44,7 +44,13 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, n_classes):
     For reference: https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf
     Fully convolutional networks can efficiently learn to make dense predictions for per-pixel 
     tasks like semantic segmentation.
-    (At last fully connected layer, the network overloads GPU memory under 5GB, making training unefficient...)
+    (At the last fully connected layer, the network overloads GPU memory under 5GB, making training unefficient...)
+    
+    Uses 3 pretrained layers from VGG16 network, that are inputs to convolutional layers between to produce additional class predictions.
+    Use 2x upsampling at 'deconvolutional' layers.
+    Layer predictions are combined in the fusion layers to combine coarse, high layer information with fine, low layer information.
+    Predictions are combined with deconvolutional layers in fusion streams.
+    (Additional information on the architecture is avalable in Section 4.2 of the original paper.)
     """
     # choose a more drastic l2 (feedforward) regularization of 0.01 to avoid overfitting
     # Dropout maybe?
