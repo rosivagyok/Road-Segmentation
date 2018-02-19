@@ -5,10 +5,7 @@ from os.path import join, expanduser
 import matplotlib.pyplot as plt
 
 def perform_augmentation(batch_x, batch_y):
-    """
-    Perform basic image preprocessing and augmentation on input image and ground truth image batches.
-    Expand current batches to increase training set.
-   """
+    
     def mirror(x):
         return x[:, ::-1, :]
 
@@ -20,7 +17,7 @@ def perform_augmentation(batch_x, batch_y):
         x_hsv[:, :, 2] = x_hsv[:, :, 2] * random.uniform(0.5, 2.0)   # change brightness
         x_hsv = np.uint8(np.clip(x_hsv, 0, 255))
 
-        # Convertz back to RGB color space
+        # Convert back to RGB color space
         return cv2.cvtColor(x_hsv, cv2.COLOR_HSV2RGB)
 
     batch_x_aug = np.copy(batch_x)
@@ -28,7 +25,7 @@ def perform_augmentation(batch_x, batch_y):
 
     for b in range(batch_x_aug.shape[0]):
 
-        # Random mirroring
+        # Random mirroring, based on coinflip choice
         should_mirror = random.choice([True, False])
         if should_mirror:
             batch_x_aug[b] = mirror(batch_x[b])
